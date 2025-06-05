@@ -1,5 +1,6 @@
 package llt.Client.RpcClient.impl;
 
+import java.net.InetSocketAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -11,10 +12,11 @@ import llt.Client.netty.nettyInitializer.NettyClientInitializer;
 import llt.common.Message.RpcRequest;
 import llt.common.Message.RpcResponse;
 import llt.Client.RpcClient.RpcClient;
+import llt.Client.serviceCenter.ServiceCenter;
+import llt.Client.serviceCenter.ZKServiceCenter;
 
 public class NettyRpcClient implements RpcClient{
-    private String host;
-    private int port;
+    private ServiceCenter serviceCenter;
     private static final Bootstrap bootstrap;
     private static final EventLoopGroup eventLoopGroup;
     static{
@@ -23,13 +25,15 @@ public class NettyRpcClient implements RpcClient{
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class).handler(new NettyClientInitializer());
     }
 
-    public NettyRpcClient(String host,int port){
-        this.host=host;
-        this.port=port;
+    public NettyRpcClient(){
+        this.serviceCenter=new ZKServiceCenter();
     }
 
     @Override
     public RpcResponse sendRequest(RpcRequest request) {
+            InetSocketAddress address=serviceCenter.serviceDiscovery(request.getInterfaceName());
+            String host=address.getHostName();
+            int port=address.getPort();
             try{
                 ChannelFuture channelFuture=bootstrap.connect(host,port).sync();
                 Channel channel=channelFuture.channel();
