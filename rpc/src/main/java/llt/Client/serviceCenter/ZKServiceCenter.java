@@ -12,7 +12,7 @@ public class ZKServiceCenter implements ServiceCenter {
     // zookeeper的客户端
     private CuratorFramework client;
 
-    private static final String ROOT_PATH = "/llt_rpc";
+    private static final String ROOT_PATH = "llt_rpc";
 
     public ZKServiceCenter() {
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
