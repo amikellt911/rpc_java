@@ -1,19 +1,24 @@
 package llt.Client.proxy;
 
-import llt.Client.IOClient;
 import llt.common.Message.RpcRequest;
 import llt.common.Message.RpcResponse;
+import llt.Client.RpcClient.RpcClient;
+import llt.Client.RpcClient.impl.NettyRpcClient;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import lombok.AllArgsConstructor;
 
-@AllArgsConstructor
 public class ClientProxy implements InvocationHandler {
     private String host;
     private int port;
+    private RpcClient rpcClient;
 
+    public ClientProxy(String host,int port){
+        this.host=host;
+        this.port=port;
+        this.rpcClient=new NettyRpcClient(host,port);
+    }
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         RpcRequest request = RpcRequest.builder()
@@ -22,11 +27,11 @@ public class ClientProxy implements InvocationHandler {
                 .params(args)
                 .paramTypes(method.getParameterTypes())
                 .build();
-        RpcResponse response = IOClient.sendRequest(host,port,request);
+        RpcResponse response = rpcClient.sendRequest(request);
         return response.getData();
     }
 
-    public  <T> T getProxy(Class<T> clazz) {
+    public  <T>T getProxy(Class<T> clazz) {
         Object p=Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, this);
         return (T)p;
     }
