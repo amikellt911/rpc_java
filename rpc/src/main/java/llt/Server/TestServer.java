@@ -3,7 +3,7 @@ package llt.Server;
 import llt.Server.server.RpcServer;
 import llt.common.service.impl.UserServiceImpl;
 import llt.common.service.UserService;
-import llt.Server.server.impl.SimpleRpcServer;
+import llt.Server.server.impl.NettyRpcServer;
 import llt.Server.provider.ServiceProvider;
 public class TestServer {
     public static void main(String[] args) {
@@ -12,7 +12,7 @@ public class TestServer {
         ServiceProvider serviceProvider=new ServiceProvider();
         serviceProvider.provideServiceInterface(userService);
 
-        RpcServer rpcServer=new SimpleRpcServer(serviceProvider);
+        RpcServer rpcServer=new NettyRpcServer(serviceProvider);
         rpcServer.start(9999);
     }
 }

@@ -33,7 +33,9 @@ public class NettyRpcClient implements RpcClient{
             try{
                 ChannelFuture channelFuture=bootstrap.connect(host,port).sync();
                 Channel channel=channelFuture.channel();
-                channel.writeAndFlush(request).sync();
+                //channel.writeAndFlush(request).sync();
+                channel.writeAndFlush(request);
+                channel.closeFuture().sync();
                 AttributeKey<RpcResponse> key=AttributeKey.valueOf("rpcResponse");
                 RpcResponse response=(RpcResponse) channel.attr(key).get();
                 System.out.println("response:"+response);

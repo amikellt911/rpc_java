@@ -10,13 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class ClientProxy implements InvocationHandler {
-    private String host;
-    private int port;
     private RpcClient rpcClient;
 
     public ClientProxy(String host,int port){
-        this.host=host;
-        this.port=port;
         this.rpcClient=new NettyRpcClient(host,port);
     }
     @Override
