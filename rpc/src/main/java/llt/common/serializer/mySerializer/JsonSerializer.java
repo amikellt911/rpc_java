@@ -9,7 +9,7 @@ import llt.common.Message.RpcResponse;
 
     @Override
     public byte[] serialize(Object object) {
-        byte[] bytes=JSON.toJSONBytes(object);
+        byte[] bytes=JSONObject.toJSONBytes(object);
         return bytes;
     }
 

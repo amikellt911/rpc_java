@@ -2,11 +2,15 @@ package llt.common.Message;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class RpcResponse implements Serializable {
     //状态码
     private int code;
@@ -21,6 +25,7 @@ public class RpcResponse implements Serializable {
                 .code(200)
                 .message("success")
                 .data(data)
+                .dataType(data != null ? data.getClass() : null)
                 .build();
     }
     public static RpcResponse fail(){
