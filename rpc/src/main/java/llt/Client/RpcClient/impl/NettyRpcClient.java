@@ -25,7 +25,7 @@ public class NettyRpcClient implements RpcClient{
         bootstrap.group(eventLoopGroup).channel(NioSocketChannel.class).handler(new NettyClientInitializer());
     }
 
-    public NettyRpcClient(){
+    public NettyRpcClient() throws InterruptedException{
         this.serviceCenter=new ZKServiceCenter();
     }
 
