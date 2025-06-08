@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-
+import llt.Client.serviceCenter.balance.impl.ConsistencyHashBalance;
 import llt.Client.cache.serviceCache;
 import llt.Client.serviceCenter.ZkWatcher.watchZK;
 import org.apache.curator.RetryPolicy;
@@ -16,9 +16,11 @@ public class ZKServiceCenter implements ServiceCenter {
     private CuratorFramework client;
     private serviceCache cache;
     private static final String ROOT_PATH = "llt_rpc";
+    private ConsistencyHashBalance loadBalancer;
 
     public ZKServiceCenter() throws InterruptedException{
         this.cache=new serviceCache();
+        this.loadBalancer = new ConsistencyHashBalance();
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
         this.client = CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181").retryPolicy(retryPolicy)
                 .namespace(ROOT_PATH).build();
@@ -34,7 +36,7 @@ public class ZKServiceCenter implements ServiceCenter {
             List<String> serviceList = cache.getServiceFromCache(serviceName);
             if(serviceList==null)
             serviceList=client.getChildren().forPath("/" + serviceName);
-            String str = serviceList.get(0);
+            String str = loadBalancer.balance(serviceList);
             return parseAddress(str);
         } catch (Exception e) {
             e.printStackTrace();
