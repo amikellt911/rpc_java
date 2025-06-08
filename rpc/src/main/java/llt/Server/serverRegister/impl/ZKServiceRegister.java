@@ -12,6 +12,7 @@ import llt.Server.serverRegister.ServiceRegister;
 public class ZKServiceRegister implements ServiceRegister{
     private CuratorFramework client;
     private static final String ROOT_PATH="llt_rpc";
+    private static final String RETRY_PATH = "retry";
 
     public ZKServiceRegister(){
         this.client=CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181").retryPolicy(new ExponentialBackoffRetry(1000,3)).namespace(ROOT_PATH).build();
@@ -20,7 +21,7 @@ public class ZKServiceRegister implements ServiceRegister{
     }
 
     @Override
-    public void register(String serviceName, InetSocketAddress serverAddress) {
+    public void register(String serviceName, InetSocketAddress serverAddress,boolean canRetry) {
         try {
             // serviceName创建成永久节点，服务提供者下线时，不删服务名，只删地址
             if(client.checkExists().forPath("/" + serviceName) == null){
@@ -30,6 +31,12 @@ public class ZKServiceRegister implements ServiceRegister{
             String path = "/" + serviceName +"/"+ getServiceAddress(serverAddress);
             // 临时节点，服务器下线就删除节点
             client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
+            if(canRetry){
+               path="/"+RETRY_PATH+"/"+serviceName;
+               if(client.checkExists().forPath(path) == null){
+                client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
+               }
+            }
         } catch (Exception e) {
             System.out.println("此服务已存在");
         }

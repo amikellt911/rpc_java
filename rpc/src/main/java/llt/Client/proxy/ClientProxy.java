@@ -4,16 +4,19 @@ import llt.common.Message.RpcRequest;
 import llt.common.Message.RpcResponse;
 import llt.Client.RpcClient.RpcClient;
 import llt.Client.RpcClient.impl.NettyRpcClient;
-
+import llt.Client.serviceCenter.ServiceCenter;
+import llt.Client.serviceCenter.ZKServiceCenter;
+import llt.Client.retry.guavaRetry;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public class ClientProxy implements InvocationHandler {
     private RpcClient rpcClient;
-
+    private ServiceCenter serviceCenter;
     public ClientProxy() throws InterruptedException{
-        this.rpcClient=new NettyRpcClient();
+        serviceCenter=new ZKServiceCenter();
+        this.rpcClient=new NettyRpcClient(serviceCenter);
     }
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -23,7 +26,12 @@ public class ClientProxy implements InvocationHandler {
                 .params(args)
                 .paramTypes(method.getParameterTypes())
                 .build();
-        RpcResponse response = rpcClient.sendRequest(request);
+        RpcResponse response;
+        if(serviceCenter.checkRetry(request.getInterfaceName())){
+            response=new guavaRetry().sendServiceRetry(request,rpcClient);
+        }else{
+            response=rpcClient.sendRequest(request);
+        }
         return response.getData();
     }
 

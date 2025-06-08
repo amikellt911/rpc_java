@@ -16,6 +16,8 @@ public class ZKServiceCenter implements ServiceCenter {
     private CuratorFramework client;
     private serviceCache cache;
     private static final String ROOT_PATH = "llt_rpc";
+    //幂等才可以重试，非幂等不可以重试（比如增删改都不可以）
+    private static final String RETRY_PATH = "retry";
     private ConsistencyHashBalance loadBalancer;
 
     public ZKServiceCenter() throws InterruptedException{
@@ -44,6 +46,23 @@ public class ZKServiceCenter implements ServiceCenter {
         return null;
     }
 
+    public boolean checkRetry(String serviceName){
+        boolean canRetry=false;
+        try{
+            List<String> serviceList=client.getChildren().forPath("/"+RETRY_PATH);
+            for(String service:serviceList){
+                if(service.equals(serviceName)){
+                    System.out.println("服务"+serviceName+"在白名单上，可进行重试");
+                    canRetry=true;
+                    break;
+                }
+            }
+            return canRetry;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        return false;
+    }
     private InetSocketAddress parseAddress(String str) {
         String[] arr = str.split(":");
         String host = arr[0];

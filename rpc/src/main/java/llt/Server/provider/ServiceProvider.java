@@ -19,7 +19,7 @@ public class ServiceProvider {
         this.port=port;
     }
 
-    public void provideServiceInterface(Object service){
+    public void provideServiceInterface(Object service,boolean canRetry){
         
         //一个服务可能通过多个接口实现，所以要是数组
         //key是接口名（也是提供给客户端的类名，value是服务实现类）
@@ -27,7 +27,7 @@ public class ServiceProvider {
 
         for(Class<?> i:interfaces){
             interfaceProvider.put(i.getName(),service);
-            serviceRegister.register(i.getName(),new InetSocketAddress(host,port));
+            serviceRegister.register(i.getName(),new InetSocketAddress(host,port),canRetry);
         }
     }
 
