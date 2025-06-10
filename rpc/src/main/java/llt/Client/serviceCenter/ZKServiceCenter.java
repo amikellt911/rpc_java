@@ -2,6 +2,7 @@ package llt.Client.serviceCenter;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -19,6 +20,7 @@ public class ZKServiceCenter implements ServiceCenter {
     //幂等才可以重试，非幂等不可以重试（比如增删改都不可以）
     private static final String RETRY_PATH = "retry";
     private ConsistencyHashBalance loadBalancer;
+    private static List<String> retryService=new ArrayList<>();
 
     public ZKServiceCenter() throws InterruptedException{
         this.cache=new serviceCache();
@@ -27,7 +29,7 @@ public class ZKServiceCenter implements ServiceCenter {
         this.client = CuratorFrameworkFactory.builder().connectString("127.0.0.1:2181").retryPolicy(retryPolicy)
                 .namespace(ROOT_PATH).build();
         this.client.start();
-        System.out.println("zookeeper连接成功");
+        // System.out.println("zookeeper连接成功");
         watchZK watchZK=new watchZK(client,cache);
         watchZK.watchToUpdate(ROOT_PATH);
     }
@@ -35,9 +37,10 @@ public class ZKServiceCenter implements ServiceCenter {
     @Override
     public InetSocketAddress serviceDiscovery(String serviceName) {
         try {
-            List<String> serviceList = cache.getServiceFromCache(serviceName);
-            if(serviceList==null)
-            serviceList=client.getChildren().forPath("/" + serviceName);
+            List<String> serviceList = serviceCache.getServiceAddressList(serviceName);
+            if(serviceList==null||serviceList.isEmpty()){
+                serviceList=client.getChildren().forPath("/" + serviceName);
+            }
             String str = loadBalancer.balance(serviceList);
             return parseAddress(str);
         } catch (Exception e) {
@@ -47,21 +50,12 @@ public class ZKServiceCenter implements ServiceCenter {
     }
 
     public boolean checkRetry(String serviceName){
-        boolean canRetry=false;
-        try{
-            List<String> serviceList=client.getChildren().forPath("/"+RETRY_PATH);
-            for(String service:serviceList){
-                if(service.equals(serviceName)){
-                    System.out.println("服务"+serviceName+"在白名单上，可进行重试");
-                    canRetry=true;
-                    break;
-                }
-            }
-            return canRetry;
-        }catch(Exception e){
-            e.printStackTrace();
+        if(retryService.contains(serviceName)){
+            // System.out.println("服务"+serviceName+"在白名单上，可进行重试");
+            return true;
+        }else{
+            return false;
         }
-        return false;
     }
     private InetSocketAddress parseAddress(String str) {
         String[] arr = str.split(":");

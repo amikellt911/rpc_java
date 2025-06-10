@@ -24,7 +24,7 @@ public class guavaRetry {
         .withRetryListener(new RetryListener() {
             @Override
             public <V> void onRetry(Attempt<V> attempt) {
-                System.out.println("重试次数"+attempt.getAttemptNumber());
+                // System.out.println("重试次数"+attempt.getAttemptNumber());
             }
         })
         .build();

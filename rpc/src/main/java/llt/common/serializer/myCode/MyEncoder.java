@@ -16,7 +16,7 @@ public class MyEncoder extends MessageToByteEncoder<Object>{
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
-        System.out.println(msg.getClass());
+        //System.out.println(msg.getClass());
         if(msg instanceof RpcRequest){
             out.writeShort(MessageType.REQUEST.getCode());
         }else if(msg instanceof RpcResponse){

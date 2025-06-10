@@ -34,21 +34,13 @@ public class watchZK {
                         else{
                             String serviceName=pathList_d[1];
                             String address=pathList_d[2];
-                            cache.removeServiceAddressFromCache(serviceName, address);
+                            cache.removeServiceAddress(serviceName, address);
                         }
                         break;
                     case "NODE_CHANGED":
-                        if(oldData.getData()!=null) 
-                        {
-                            System.out.println("修改前的数据: " + new String(oldData.getData()));
-                        }
-                        else{
-                            System.out.println("节点第一次赋值!");
-                        }
                         String[] oldPathList=parsePath(oldData);
                         String[] newPathList=parsePath(newData);
                         cache.replaceServiceAddress(oldPathList[1],oldPathList[2],newPathList[2]);
-                        System.out.println("修改后的数据: " + new String(newData.getData()));
                         break;
                     default:
                         break;

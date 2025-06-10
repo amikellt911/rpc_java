@@ -18,12 +18,10 @@ public class ConsistencyHashBalance implements LoadBalance{
     private void init(List<String> serviceAddresses) {
         for(String server:serviceAddresses) {
             nodes.add(server);
-            System.out.println("真实节点[" + server + "] 被添加");
             for(int i=0;i<VIRTUAL_NODES;i++) {
                 String virtualNodeName=server+"&&VN"+i;
                 int hash=getHash(virtualNodeName);
                 virtualNodes.put(hash,virtualNodeName);
-                System.out.println("虚拟节点[" + virtualNodeName + "] 被添加");
             }   
         }
     }
@@ -85,12 +83,10 @@ public class ConsistencyHashBalance implements LoadBalance{
     public void addNode(String node) {
         if(!nodes.contains(node)) {
             nodes.add(node);
-            System.out.println("真实节点[" + node + "] 被添加");
             for(int i=0;i<VIRTUAL_NODES;i++) {
                 String virtualNodeName=node+"&&VN"+i;
                 int hash=getHash(virtualNodeName);
                 virtualNodes.put(hash,virtualNodeName);
-                System.out.println("虚拟节点[" + virtualNodeName + "] 被添加");
             }
         }
     }
@@ -98,12 +94,10 @@ public class ConsistencyHashBalance implements LoadBalance{
     public void deleteNode(String node) {
         if(nodes.contains(node)) {
             nodes.remove(node);
-            System.out.println("真实节点[" + node + "] 被删除");
             for(int i=0;i<VIRTUAL_NODES;i++) {
                 String virtualNodeName=node+"&&VN"+i;
                 int hash=getHash(virtualNodeName);
                 virtualNodes.remove(hash);
-                System.out.println("虚拟节点[" + virtualNodeName + "] 被删除");
             }
         }
     }

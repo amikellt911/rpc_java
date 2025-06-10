@@ -14,6 +14,7 @@ import llt.common.Message.RpcResponse;
 import llt.Client.RpcClient.RpcClient;
 import llt.Client.serviceCenter.ServiceCenter;
 import llt.Client.serviceCenter.ZKServiceCenter;
+import java.util.concurrent.CompletableFuture;
 
 public class NettyRpcClient implements RpcClient{
     private ServiceCenter serviceCenter;
@@ -34,17 +35,23 @@ public class NettyRpcClient implements RpcClient{
             InetSocketAddress address=serviceCenter.serviceDiscovery(request.getInterfaceName());
             String host=address.getHostName();
             int port=address.getPort();
+            ChannelFuture channelFuture;
             try{
-                ChannelFuture channelFuture=bootstrap.connect(host,port).sync();
+                channelFuture=bootstrap.connect(host,port).sync();
                 Channel channel=channelFuture.channel();
-                //channel.writeAndFlush(request).sync();
+
+                // 创建一个future来接收结果
+                CompletableFuture<RpcResponse> future = new CompletableFuture<>();
+                // 将future存入channel的AttributeMap，以便handler可以获取
+                AttributeKey<CompletableFuture<RpcResponse>> key = AttributeKey.valueOf("RPC_FUTURE");
+                channel.attr(key).set(future);
+
                 channel.writeAndFlush(request);
-                channel.closeFuture().sync();
-                AttributeKey<RpcResponse> key=AttributeKey.valueOf("rpcResponse");
-                RpcResponse response=(RpcResponse) channel.attr(key).get();
-                System.out.println("response:"+response);
-                return response;
-            } catch (InterruptedException e) {
+
+                // 异步等待结果，而不是等待连接关闭
+                return future.get();
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             return null;
